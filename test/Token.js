@@ -2,7 +2,7 @@ const hre = require('hardhat')
 const { expect } = require('chai')
 
 const tokens = (n) => {
-  return hre.ethers.parseUnits(n.toString())
+  return hre.ethers.parseEther(n.toString())
 }
 
 describe('Token', () => {
@@ -10,6 +10,7 @@ describe('Token', () => {
   const SYMBOL = 'DZT'
   const DECIMALS = 18
   const TOTALSUPPLY = 1000000
+  const VALUE = tokens(100)
 
   let token, txn, result
   let signer, receiver, exchange
@@ -50,15 +51,13 @@ describe('Token', () => {
   })
 
   describe('Transfer Tokens', () => {
-    const value = tokens(100)
-
     describe('Success', () => {
       beforeEach(async () => {
-        txn = await token.connect(signer).transfer(receiver, value)
+        txn = await token.connect(signer).transfer(receiver, VALUE)
       })
 
       it('increases the receivers balance', async () => {
-        expect(await token.balanceOf(receiver.address)).to.equal(value)
+        expect(await token.balanceOf(receiver.address)).to.equal(VALUE)
       })
 
       it('decreases the signers balance', async () => {
@@ -66,53 +65,80 @@ describe('Token', () => {
       })
 
       it('emits a transfer event', async () => {
-        expect(txn).to.emit(token, 'Transfer').withArgs(signer.address, receiver.address, value)
+        expect(txn).to.emit(token, 'Transfer').withArgs(signer.address, receiver.address, VALUE)
       })
     })
 
     describe('Failure', () => {
       it('rejects insufficient balances', async () => {
-        await expect(token.connect(signer).transfer(receiver, tokens(1000000000000))).to.be.revertedWith('Insufficient balance.')
+        await expect(token.connect(signer).transfer(receiver, tokens(1000001))).to.be.revertedWith('Insufficient balance.')
       })
 
       it('rejects invalid \'to\' addresses', async () => {
-        await expect(token.connect(signer).transfer('0x0000000000000000000000000000000000000000', value)).to.be.revertedWith('Invalid \'to\' address.')
+        await expect(token.connect(signer).transfer('0x0000000000000000000000000000000000000000', VALUE)).to.be.revertedWith('Invalid \'to\' address.')
       })
     })
   })
 
   describe('Approve Tokens', () => {
-    const value = tokens(100)
-
     beforeEach(async () => {
-      txn = await token.connect(signer).approve(exchange.address, value)
-
+      txn = await token.connect(signer).approve(exchange.address, VALUE)
     })
 
     describe('Success', () => {
       it('sets spender\'s allowance', async () => {
-        expect(await token.allowance(signer.address, exchange.address)).to.be.equal(value)
+        expect(await token.allowance(signer.address, exchange.address)).to.be.equal(VALUE)
       })
 
       it('emits an Approval event', async () => {
-        await expect(txn).to.emit(token, 'Approval').withArgs(signer.address, exchange.address, value)
+        await expect(txn).to.emit(token, 'Approval').withArgs(signer.address, exchange.address, VALUE)
       })
     })
 
     describe('Failure', () => {
       it('rejects invalid \'spender\' addresses', async () => {
-        await expect(token.connect(signer).approve('0x0000000000000000000000000000000000000000', value)).to.be.revertedWith('Invalid \'spender\' address.')
+        await expect(token.connect(signer).approve('0x0000000000000000000000000000000000000000', VALUE)).to.be.revertedWith('Invalid \'spender\' address.')
       })
     })
   })
 
   describe('Delegated Transfer', () => {
-    describe('Success', () => {
+    beforeEach(async () => {
+      await token.connect(signer).approve(exchange.address, VALUE)
+    })
 
+    describe('Success', () => {
+      beforeEach(async () => {
+        txn = await token.connect(exchange).transferFrom(signer.address, receiver.address, VALUE)
+      })
+
+      it('updates owner and receiver balances', async () => {
+        expect(await token.balanceOf(signer.address)).to.be.equal(tokens(999900))
+        expect(await token.balanceOf(receiver.address)).to.be.equal(VALUE)
+      })
+
+      it('updates spender\'s new allowance amount', async () => {
+        expect(await token.allowance(signer.address, exchange.address)).to.be.equal(0)
+      })
+
+      it('emits a Transfer event', async () => {
+        await expect(txn).to.emit(token, 'Transfer').withArgs(signer.address, receiver.address, VALUE)
+      })
     })
 
     describe('Failure', () => {
+      it('rejects values above allowance amount', async () => {
+        await expect(token.connect(exchange).transferFrom(signer.address, receiver.address, tokens(101))).to.be.revertedWith('Insufficient allowance.')
+      })
 
+      it('rejects invalid \'to\' addresses', async () => {
+        await expect(token.connect(exchange).transferFrom(signer.address, '0x0000000000000000000000000000000000000000', VALUE)).to.be.revertedWith('Invalid \'to\' address.')
+      })
+
+      it('rejects insufficient balances', async () => {
+        await token.connect(receiver).approve(exchange.address, VALUE)
+        await expect(token.connect(exchange).transferFrom(receiver.address, signer.address, VALUE)).to.be.revertedWith('Insufficient balance.')
+      })
     })
   })
 })
