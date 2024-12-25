@@ -43,7 +43,13 @@ contract Token {
     }
 
     function approve(address _spender, uint256 _value) public returns (bool success) {
+        require(_spender != address(0), "Invalid 'spender' address.");
 
+        allowance[msg.sender][_spender] = _value;
+
+        emit Approval(msg.sender, _spender, _value);
+
+        return true;
     }
 
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {

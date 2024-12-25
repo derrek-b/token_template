@@ -50,15 +50,15 @@ describe('Token', () => {
   })
 
   describe('Transfer Tokens', () => {
-    const amount = tokens(100)
+    const value = tokens(100)
 
     describe('Success', () => {
       beforeEach(async () => {
-        txn = await token.connect(signer).transfer(receiver, amount)
+        txn = await token.connect(signer).transfer(receiver, value)
       })
 
       it('increases the receivers balance', async () => {
-        expect(await token.balanceOf(receiver.address)).to.equal(amount)
+        expect(await token.balanceOf(receiver.address)).to.equal(value)
       })
 
       it('decreases the signers balance', async () => {
@@ -66,7 +66,7 @@ describe('Token', () => {
       })
 
       it('emits a transfer event', async () => {
-        expect(txn).to.emit(token, 'Transfer').withArgs(signer.address, receiver.address, amount)
+        expect(txn).to.emit(token, 'Transfer').withArgs(signer.address, receiver.address, value)
       })
     })
 
@@ -76,18 +76,33 @@ describe('Token', () => {
       })
 
       it('rejects invalid \'to\' addresses', async () => {
-        await expect(token.connect(signer).transfer('0x0000000000000000000000000000000000000000', amount)).to.be.revertedWith('Invalid \'to\' address.')
+        await expect(token.connect(signer).transfer('0x0000000000000000000000000000000000000000', value)).to.be.revertedWith('Invalid \'to\' address.')
       })
     })
   })
 
   describe('Approve Tokens', () => {
-    describe('Success', () => {
+    const value = tokens(100)
+
+    beforeEach(async () => {
+      txn = await token.connect(signer).approve(exchange.address, value)
 
     })
 
-    describe('Failure', () => {
+    describe('Success', () => {
+      it('sets spender\'s allowance', async () => {
+        expect(await token.allowance(signer.address, exchange.address)).to.be.equal(value)
+      })
 
+      it('emits an Approval event', async () => {
+        await expect(txn).to.emit(token, 'Approval').withArgs(signer.address, exchange.address, value)
+      })
+    })
+
+    describe('Failure', () => {
+      it('rejects invalid \'spender\' addresses', async () => {
+        await expect(token.connect(signer).approve('0x0000000000000000000000000000000000000000', value)).to.be.revertedWith('Invalid \'spender\' address.')
+      })
     })
   })
 
