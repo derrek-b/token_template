@@ -6,12 +6,16 @@ const tokens = (n) => {
 }
 
 describe('Token', () => {
-  let token, txn, result
+  const NAME = 'Dz Token'
+  const SYMBOL = 'DZT'
+  const DECIMALS = 18
+  const TOTALSUPPLY = 1000000
 
+  let token, txn, result
   let signer, receiver, exchange
 
   beforeEach(async () => {
-    token = await hre.ethers.deployContract('Token', ['D\'z Nuts', 'DzNuts', 1000000])
+    token = await hre.ethers.deployContract('Token', [NAME, SYMBOL, TOTALSUPPLY])
 
     const accounts = await hre.ethers.getSigners()
     signer = accounts[0]
@@ -25,19 +29,19 @@ describe('Token', () => {
     })
 
     it('sets the correct name', async () => {
-      expect(await token.name()).to.be.equal('D\'z Nuts')
+      expect(await token.name()).to.be.equal(NAME)
     })
 
     it('sets the correct symbol', async () => {
-      expect(await token.symbol()).to.be.equal('DzNuts')
+      expect(await token.symbol()).to.be.equal(SYMBOL)
     })
 
     it('sets the correct decimals', async () => {
-      expect(await token.decimals()).to.be.equal('18')
+      expect(await token.decimals()).to.be.equal(DECIMALS)
     })
 
-    it('sets the correct max supply', async () => {
-      expect(await token.maxSupply()).to.be.equal(tokens(1000000))
+    it('sets the correct total supply', async () => {
+      expect(await token.totalSupply()).to.be.equal(tokens(TOTALSUPPLY))
     })
 
     it('transfers all tokens to owner', async () => {
@@ -51,7 +55,6 @@ describe('Token', () => {
     describe('Success', () => {
       beforeEach(async () => {
         txn = await token.connect(signer).transfer(receiver, amount)
-        result = txn.wait()
       })
 
       it('increases the receivers balance', async () => {
@@ -63,8 +66,7 @@ describe('Token', () => {
       })
 
       it('emits a transfer event', async () => {
-        const args = result.args
-
+        expect(txn).to.emit(token, 'Transfer').withArgs(signer.address, receiver.address, amount)
       })
     })
 
