@@ -46,12 +46,36 @@ describe('Token', () => {
   })
 
   describe('Transfer Tokens', () => {
-    describe('Success', () => {
+    const amount = tokens(100)
 
+    describe('Success', () => {
+      beforeEach(async () => {
+        txn = await token.connect(signer).transfer(receiver, amount)
+        result = txn.wait()
+      })
+
+      it('increases the receivers balance', async () => {
+        expect(await token.balanceOf(receiver.address)).to.equal(amount)
+      })
+
+      it('decreases the signers balance', async () => {
+        expect(await token.balanceOf(signer.address)).to.equal(tokens(999900))
+      })
+
+      it('emits a transfer event', async () => {
+        const args = result.args
+
+      })
     })
 
     describe('Failure', () => {
+      it('rejects insufficient balances', async () => {
+        await expect(token.connect(signer).transfer(receiver, tokens(1000000000000))).to.be.revertedWith('Insufficient balance.')
+      })
 
+      it('rejects invalid \'to\' addresses', async () => {
+        await expect(token.connect(signer).transfer('0x0000000000000000000000000000000000000000', amount)).to.be.revertedWith('Invalid \'to\' address.')
+      })
     })
   })
 
