@@ -11,6 +11,7 @@ describe('Token', () => {
   const DECIMALS = 18
   const TOTALSUPPLY = 1000000
   const VALUE = tokens(100)
+  const AMOUNT = tokens(1)
 
   let token, txn, result
   let signer, receiver, exchange
@@ -47,6 +48,10 @@ describe('Token', () => {
 
     it('transfers all tokens to owner', async () => {
       expect(await token.balanceOf(signer.address)).to.be.equal(tokens(1000000))
+    })
+
+    it('gives owner minting rights', async () => {
+      expect(await token.allowMint(signer.address)).to.be.true
     })
   })
 
@@ -138,6 +143,77 @@ describe('Token', () => {
       it('rejects insufficient balances', async () => {
         await token.connect(receiver).approve(exchange.address, VALUE)
         await expect(token.connect(exchange).transferFrom(receiver.address, signer.address, VALUE)).to.be.revertedWith('Insufficient balance.')
+      })
+    })
+  })
+
+  describe('Minting Tokens', () => {
+    describe('Success', () => {
+      beforeEach(async () => {
+        txn = await token.connect(signer).mint(signer.address, AMOUNT)
+      })
+
+      it('increases address\'s token balance', async () => {
+        expect(await token.balanceOf(signer.address)).to.be.equal(tokens(1000001))
+      })
+
+      it('increases token\'s total supply', async () => {
+        expect(await token.totalSupply()).to.be.equal(tokens(1000001))
+      })
+
+      it('emits a Mint event', async () => {
+        await expect(txn).to.emit(token, 'Mint').withArgs(signer.address, AMOUNT)
+      })
+    })
+
+    describe('Failure', () => {
+      it('rejects unauthorized minting', async () => {
+        await expect(token.connect(receiver).mint(receiver.address, AMOUNT)).to.be.revertedWith('Unauthorized minter.')
+      })
+    })
+  })
+
+  describe('Manage Minting Permission', () => {
+    describe('Success', () => {
+      beforeEach(async () => {
+        await token.connect(signer).setAllowMint(receiver.address, true)
+      })
+
+      it('sets new minting permission', async () => {
+        expect(await token.allowMint(receiver)).to.be.true
+      })
+    })
+
+    describe('Failure', () => {
+      it('rejects calls from non owner', async () => {
+        await expect(token.connect(receiver).setAllowMint(receiver.address, true)).to.be.revertedWith('Unauthorized caller.')
+      })
+
+      it('rejects invalid addresses', async () => {
+        await expect(token.connect(signer).setAllowMint('0x0000000000000000000000000000000000000000', true)).to.be.revertedWith('Invalid minter address.')
+      })
+    })
+  })
+
+  describe('Burning Tokens', () => {
+    describe('Success', () => {
+      beforeEach(async () => {
+        txn = await token.connect(signer).burn(AMOUNT)
+      })
+
+      it('decreases total supply & caller\'s balance', async () => {
+        expect(await token.balanceOf(signer.address)).to.be.equal(tokens(999999))
+        expect(await token.totalSupply()).to.be.equal(tokens(999999))
+      })
+
+      it('emits a Burn event', async () => {
+        await expect(txn).to.emit(token, 'Burn').withArgs(signer.address, AMOUNT)
+      })
+    })
+
+    describe('Failure', () => {
+      it('rejects insufficient balances', async () => {
+        await expect(token.connect(receiver).burn(AMOUNT)).to.be.revertedWith('Insufficient balance.')
       })
     })
   })
