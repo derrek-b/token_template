@@ -17,7 +17,7 @@ describe('Token', () => {
   let signer, receiver, exchange
 
   beforeEach(async () => {
-    token = await hre.ethers.deployContract('Token', [NAME, SYMBOL, TOTALSUPPLY])
+    token = await hre.ethers.deployContract('Token', [NAME, SYMBOL, DECIMALS, TOTALSUPPLY])
 
     const accounts = await hre.ethers.getSigners()
     signer = accounts[0]

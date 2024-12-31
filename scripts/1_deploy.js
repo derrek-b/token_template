@@ -1,8 +1,17 @@
 const hre = require('hardhat')
 
+const NAME = ''
+const SYMBOL = ''
+const DECIMALS = 0
+const TOTALSUPPLY = 0
+
 async function main() {
-  const Token = await hre.ethers.getContractFactory('Token')
-  const token = await Token.deploy('D\'z Nuts', 'DZT', 1000000)
+  if(NAME === '' || SYMBOL === '') {
+    console.log('Please enter at least a name and symbol to deploy script')
+    return
+  }
+  const Token = await hre.ethers.getContractFactory(NAME, SYMBOL, DECIMALS, TOTALSUPPLY)
+  const token = await Token.deploy()
 
   console.log(await token.getAddress())
 }

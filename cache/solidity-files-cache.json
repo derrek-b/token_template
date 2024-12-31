@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/home/dnice/code/token/contracts/Token.sol": {
-      "lastModificationDate": 1735253510193,
-      "contentHash": "5fc147bc162718933a4a3297803da969",
+      "lastModificationDate": 1735654463126,
+      "contentHash": "b7c9a8459f3f726e00627fbc14691e1c",
       "sourceName": "contracts/Token.sol",
       "solcConfig": {
         "version": "0.8.28",
