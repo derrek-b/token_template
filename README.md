@@ -7,13 +7,14 @@ to set up the network you would like to deploy to (default uses hardhat dev netw
 
 To create your own token use the deploy script<br/>
 `scripts/1_deploy.js`<br/><br/>
-using your own token name, symbol, decimals, and totalSupply<br/>
+using your own token name, symbol, decimals, and totalSupply
 ```
-const NAME = 'your_name'<br/>
-const SYMBOL = 'your_symbol'<br/>
-const DECIMALS = your_decimals<br/>
+const NAME = 'your_name'
+const SYMBOL = 'your_symbol'
+const DECIMALS = your_decimals
 const TOTALSUPPLY = your_totalsupply
-```<br/><br/>
+```
+
 and use the displayed address to add the token to your preferred wallet<br/>
     - [Metamask](https://support.metamask.io/managing-my-tokens/custom-tokens/how-to-display-tokens-in-metamask/#how-to-add-a-custom-token)<br/>
     - [Phantom (auto)](https://help.phantom.com/hc/en-us/articles/27309470600851-How-do-I-add-a-token)<br/>
