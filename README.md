@@ -1,11 +1,11 @@
-#ERC-20+ Token Template
+###ERC-20+ Token Template
 
 Basic ERC-20 token with added mint and burn functionality.
 
 _Before running deploy script update hardhat.config.js like [this](https://hardhat.org/hardhat-runner/docs/config#networks-configuration)
 to set up the network you would like to deploy to (default uses hardhat dev network locally)_
 
-To create your own token use the deploy script
+To create your own token use the deploy script \n
 `scripts/1_deploy.js`
 using your own token name, symbol, decimals, and totalSupply
 `const NAME = 'your_name'`
